@@ -1,0 +1,131 @@
+<!DOCTYPE>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+    <head>
+        <meta content="charset=UTF-8"/>
+        <title>3DHOP - 3D Heritage Online Presenter</title>
+        <link type="text/css" rel="stylesheet" href="stylesheet/3dhop.css"/>  
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css">
+        <script type="text/javascript" src="js/spidergl.js"></script>
+        <script type="text/javascript" src="js/jquery.js"></script>
+        <script type="text/javascript" src="js/presenter.js"></script>
+        <script type="text/javascript" src="js/nexus.js"></script>
+        <script type="text/javascript" src="js/ply.js"></script>
+        <script type="text/javascript" src="js/trackball_sphere.js"></script>
+        <script type="text/javascript" src="js/trackball_turntable.js"></script>
+        <script type="text/javascript" src="js/trackball_turntable_pan.js"></script>
+        <script type="text/javascript" src="js/trackball_pantilt.js"></script>
+        <script type="text/javascript" src="js/init.js"></script>
+    </head>
+    <body>
+        <div id="container">
+            <div id="3dhop" class="tdhop main" onmousedown="if (event.preventDefault) event.preventDefault()">
+                <div id="tdhlg"></div>
+                <div id="tool">
+                    <ul id="toolList">
+                        <li id="home" title="Torna allo zoom iniziale"><i class="fa fa-home fa-2x"></i></li>
+                        <li id="zoomin" title="Zoom in"><i class="fa fa-search-plus fa-2x"></i></li>
+                        <li id="zoomout" title="Zoom out"><i class="fa fa-search-minus fa-2x"></i></li>
+                        <li id="light" title="Light On/Off" class="hide"><i class="fa fa-lightbulb-o fa-2x"></i></li>
+                        <li id="hotspot" title="Model point description On/Off"><i class="fa fa-question fa-2x"></i></li>
+                    </ul>
+                </div>
+                <canvas id="draw-canvas" />
+            </div>
+            <div id="description">
+                <h1 id="modelName">Nome modello</h1>
+                <div id="modelDescription"></div>
+                <div id="modelPhoto"></div>
+            </div>
+            <div id="thumb">
+                <div id="thumbWrap">
+                    <ul id="thumbList">
+                    
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </body>
+    <script type="text/javascript">
+        var presenter = null;
+        var thumb=['icons/spw01.png','icons/spw02.png','icons/spw03.png','icons/spw04.png','icons/spw05.png','icons/spw06.png','icons/spw07.png','icons/spw08.png','icons/spw09.png','icons/spw10.png','icons/spw11.png','icons/spw12.png','icons/spw13.png','icons/spw14.png','icons/spw15.png'];
+        var tw = $('#3dhop').width();
+        var th = $('#3dhop').height();
+        
+        function setup3dhop() { 
+            presenter = new Presenter("draw-canvas");
+            presenter.setScene({
+                meshes: {
+                    "Gargoyle" : { url: "models/multires/gargo.nxs" },
+                    "Cube" : { url: "models/singleres/cube.ply" },
+                    "Sphere" : { url: "models/singleres/sphere.ply" },
+                    "Wing" : { url: "models/singleres/wing.ply" }
+                }
+               ,modelInstances : {
+                    "Gargo" : { mesh : "Gargoyle"	}
+                   ,"Base" : { 
+                       mesh : "Cube"
+                      ,transform : { matrix: SglMat4.mul(SglMat4.translation([0.0, -5.0, 0.0]), SglMat4.scaling([ 3.0, 0.2, 3.0])) }
+                    } 
+                }
+               ,spots : {
+                    "Wing" : { 
+                        mesh : "Wing"
+                       ,transform : { matrix: SglMat4.mul(SglMat4.translation([ 3.3, 110.0, -7.0]), SglMat4.rotationAngleAxis(sglDegToRad(-5.0), [0.0, 0.0, 1.0])) }
+                       ,color : [0.0, 0.25, 1.0]
+                    }
+                   ,"Sphere" : {
+                        mesh : "Sphere",
+                        transform : { 
+                            matrix: SglMat4.mul(SglMat4.translation([-2.0, 12.0, 25.0]), SglMat4.scaling([ 30.0, 15.0, 15.0]))
+                        },
+                        color : [0.0, 0.25, 1.0],
+                        alpha : 0.5
+                    }
+                }
+               ,trackball: {
+                    type : TurnTableTrackball,
+                    trackOptions : {
+                        startDistance : 3.0,
+                        minMaxDist    : [2.0, 5.0],
+                        minMaxTheta   : [-10.0, 70.0]
+                    }
+                }
+            });
+            presenter.setSpotVisibility(HOP_ALL, false, true);
+            presenter._onPickedSpot = onPickedSpot;
+            presenter._onPickedInstance = onPickedInstance;
+        }
+        function actionsToolbar(action) {
+            if(action=='home') presenter.resetTrackball(); 
+            else if(action=='zoomin') presenter.zoomIn();
+            else if(action=='zoomout') presenter.zoomOut(); 
+            else if(action=='light' || action=='light_on') { presenter.enableLightTrackball(!presenter.isLightTrackballEnabled()); lightSwitch(); } 
+            else if(action=='hotspot'|| action=='hotspot_on') { presenter.toggleSpotVisibility(HOP_ALL, true); presenter.enableOnHover(!presenter.isOnHoverEnabled()); hotspotSwitch(); }
+            else if(action=='full'  || action=='full_on') fullscreenSwitch(); 
+        }
+        function onPickedSpot(id) {
+            switch(id) {
+                case 'Wing'   : alert("Wing Hotspot Clicked"); break;
+                case 'Sphere' : alert("Basis Hotspot Clicked"); break;
+            }
+        }
+        function onPickedInstance(id) {
+            switch(id) {
+                case 'Gargo' : alert("Gargoyle Model Clicked "); break;
+                case 'Base'  : alert("Pedestal Model Clicked"); break;
+            }
+        }
+
+        $(document).ready(function(){
+            init3dhop();
+            setup3dhop();
+            $.each( thumb, function( key, value ) {
+                $("#thumbList").append("<li><img src='"+value+"' class='thumb' /></li>");
+            });
+            $(".thumb").css({"width":tw/thumb.length-10, "heigth":th-10 })
+                .mouseenter(function(){$(this).animate({height:"+=50",width:"+=50"});})
+                .mouseout(function(){$(this).animate({height:"-=50",width:"-=50"});});
+            //$("#modelDescription").text(tw+"/"+th);
+        });
+    </script>
+</html>

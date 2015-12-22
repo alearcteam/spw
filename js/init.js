@@ -49,29 +49,15 @@ function init3dhop() {
         .on('touchmove', function(e) {clearInterval(interval);})
     ;
     resizeCanvas($('#3dhop').width(),$('#3dhop').height());
-    set3dhlg();
 } 
 
 function lightSwitch() {
     var on = presenter.isLightTrackballEnabled();
     if(on){$('#light').attr("id",'light_on');}else{ $('#light_on').attr("id",'light'); }
 }
-
-function hotspotSwitch() {
-    var on = presenter.isSpotVisibilityEnabled();
-    if(on){$('#hotspot').attr('id', 'hotspot_on');}else{$('#hotspot_on').attr('id', 'hotspot');}
-}
-
 function resizeCanvas(w,h) {
   $('#draw-canvas').attr('width', w);
   $('#draw-canvas').attr('height',h);
   $('#3dhop').css('width', w);
   $('#3dhop').css('height', h);  
-}
-
-function set3dhlg() {
-    $('#tdhlg').html("Powered by 3DHOP</br>&nbsp;C.N.R. &nbsp;&ndash;&nbsp; I.S.T.I.");
-    $('#tdhlg').mouseover(function() { $('#tdhlg').animate({ height: "25px"}, "fast" ); })
-    .mouseout(function() { $('#tdhlg').animate({ height: "13px" }, "slow" ); });
-    $('#tdhlg').click(function() { window.open('http://vcg.isti.cnr.it/3dhop/', '_blank') });
 }
